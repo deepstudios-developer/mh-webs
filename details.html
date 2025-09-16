@@ -25,7 +25,7 @@
     const courseId = params.get('id');
 
     // JSON से course ढूँढना
-    fetch('courses.json')
+    fetch('error_404_config.json')
       .then(response => response.json())
       .then(data => {
         const course = data.find(c => c.id === courseId);
