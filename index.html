@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>My Course Website</title>
+    <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+    <header>
+        <h1>LOGO HERE</h1>
+    </header>
+
+    <div id="courses-container"></div>
+
+    <footer>
+        <p>Copyright ©</p>
+    </footer>
+
+    <script>
+    // JSON file से courses लाना
+    fetch('error_404_config.json')
+      .then(response => response.json())
+      .then(data => {
+        const container = document.getElementById('courses-container');
+        data.forEach(course => {
+          const card = document.createElement('div');
+          card.className = 'course-card';
+          card.innerHTML = `
+            <img src="${course.thumbnail}" alt="${course.name}" class="course-thumbnail">
+            <h3>${course.name}</h3>
+            <p>${course.description}</p>
+<a href="details.html?id=${course.id}" class="download-btn">Download and Play</a>
+          `;
+          container.appendChild(card);
+        });
+      })
+      .catch(err => console.error('Error loading courses:', err));
+    </script>
+</body>
+</html>

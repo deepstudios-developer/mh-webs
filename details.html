@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Course Details</title>
+    <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+    <header>
+        <h1>Course Details</h1>
+    </header>
+
+    <div id="course-details" class="course-card">
+        <!-- यहाँ course का content dynamically आएगा -->
+    </div>
+
+    <footer>
+        <p>Copyright ©</p>
+    </footer>
+
+    <script>
+    // URL से course id निकालना
+    const params = new URLSearchParams(window.location.search);
+    const courseId = params.get('id');
+
+    // JSON से course ढूँढना
+    fetch('courses.json')
+      .then(response => response.json())
+      .then(data => {
+        const course = data.find(c => c.id === courseId);
+        const container = document.getElementById('course-details');
+
+        if(course){
+            container.innerHTML = `
+                <img src="${course.thumbnail}" alt="${course.name}" class="course-thumbnail">
+                <h2>${course.name}</h2>
+                <p>${course.description}</p>
+                <a href="${course.download}" class="download-btn">Download Now</a>
+            `;
+        } else {
+            container.innerHTML = `<p>Course not found.</p>`;
+        }
+      })
+      .catch(err => {
+        console.error("Error:", err);
+      });
+    </script>
+</body>
+</html>

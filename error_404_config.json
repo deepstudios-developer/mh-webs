@@ -1,0 +1,16 @@
+[
+    {
+        "id": "course_math_name",
+        "thumbnail": "https://example.com/math.jpg",
+        "name": "Mathematics",
+        "description": "Class 12th (Hindi) – गणित के महत्वपूर्ण अध्याय और उदाहरण सहित।",
+        "download": "https://www.youtube.com/live/GmER7kF4ofI"
+    },
+    {
+        "id": "course_physics_name",
+        "thumbnail": "https://example.com/physics.jpg",
+        "name": "Physics",
+        "description": "Class 11th (Hindi) – भौतिक विज्ञान की विस्तृत जानकारी।",
+        "download": "https://www.youtube.com/live/GmER7kF4ofI"
+    }
+]

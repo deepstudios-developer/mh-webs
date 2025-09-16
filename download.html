@@ -1,0 +1,31 @@
+
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>डाउनलोड</title>
+    <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+    <div id="download-section"></div>
+    <script>
+        const params = new URLSearchParams(window.location.search);
+        const courseId = parseInt(params.get('id'));
+        fetch('courses.json')
+            .then(response => response.json())
+            .then(data => {
+                const course = data.find(c => c.id === courseId);
+                if(course){
+                    document.getElementById('download-section').innerHTML = `
+                        <h1>${course.title}</h1>
+                        <p>${course.full_description}</p>
+                        <a href="${course.video_link}" download>वीडियो डाउनलोड करें</a>
+                    `;
+                } else {
+                    document.getElementById('download-section').innerHTML = `<p>कोर्स नहीं मिला।</p>`;
+                }
+            });
+    </script>
+</body>
+</html>
