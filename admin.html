@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Admin Panel - Secure JSON Generator</title>
+<style>
+  body{font-family:Arial,Helvetica,sans-serif;margin:20px;background:#f7f7f7}
+  .container{max-width:600px;margin:0 auto;background:#fff;padding:16px;border-radius:8px;box-shadow:0 2px 8px rgba(0,0,0,0.08)}
+  label{display:block;margin-top:10px}
+  input,textarea,select{width:100%;padding:8px;margin-top:6px;box-sizing:border-box;border:1px solid #ccc;border-radius:4px}
+  button{margin-top:12px;padding:10px 14px;border-radius:6px;border:0;background:#007bff;color:#fff;cursor:pointer}
+  button.secondary{background:#6c757d}
+  pre{background:#f4f4f4;padding:12px;border-radius:6px;white-space:pre-wrap}
+  .msg{margin-top:10px;padding:8px;border-radius:6px}
+  .ok{background:#e6ffed;border:1px solid #b3f0c9}
+  .err{background:#ffecec;border:1px solid #ffbcbc}
+  .small{font-size:0.9em;color:#555;margin-top:6px}
+</style>
+</head>
+<body>
+  <div class="container">
+    <h2>Admin Panel — Add Course</h2>
+
+    
+    <input id="authUrl" type="hidden" placeholder="https://..." value="https://deepstudios-developer.github.io/mh-webs/auth.txt">
+
+    <form id="courseForm">
+      <label>ID:
+        <input id="pro" required />
+      </label>
+
+      <label>Thumbnail URL:
+        <input id="thumbnail" type="url" required />
+      </label>
+
+      <label>Course Name:
+        <input id="name" />
+      </label>
+
+      <label>Description:
+        <textarea id="description" rows="3" required></textarea>
+      </label>
+
+      <label>Download Link:
+        <input id="download" type="url" required />
+      </label>
+
+      <button id="genBtn" type="submit">Generate JSON (checks auth)</button>
+      <button id="copyBtn" type="button" class="secondary">Copy JSON</button>
+    </form>
+
+    <div id="status" class="msg" style="display:none"></div>
+
+    <h3>Generated JSON</h3>
+    <pre id="jsonOutput">{}</pre>
+  </div>
+
+<script>
+(function(){
+  const form = document.getElementById('courseForm');
+  const output = document.getElementById('jsonOutput');
+  const status = document.getElementById('status');
+  const authUrlInput = document.getElementById('authUrl');
+  const copyBtn = document.getElementById('copyBtn');
+  const genBtn = document.getElementById('genBtn');
+
+  // helper: set status
+  function setStatus(text, ok=true){
+    status.style.display = 'block';
+    status.textContent = text;
+    status.className = ok ? 'msg ok' : 'msg err';
+  }
+
+  // helper: clear status
+  function clearStatus(){
+    status.style.display = 'none';
+    status.textContent = '';
+  }
+
+  // fetch with timeout and no-cache to always get latest auth.txt
+  async function fetchWithTimeout(url, timeout = 7000){
+    const controller = new AbortController();
+    const id = setTimeout(() => controller.abort(), timeout);
+    try {
+      const resp = await fetch(url, { signal: controller.signal, cache: 'no-store' });
+      clearTimeout(id);
+      return resp;
+    } catch (e) {
+      clearTimeout(id);
+      throw e;
+    }
+  }
+
+  // check auth file content for word "connected" (case-insensitive, whole word)
+  async function checkAuth(authUrl){
+    try {
+      const resp = await fetchWithTimeout(authUrl, 7000);
+      if (!resp.ok) {
+        // treat non-200 as failure
+        throw new Error('Auth file not fetched (status ' + resp.status + ')');
+      }
+      const txt = await resp.text();
+      // check for whole word connected, case-insensitive
+      const m = txt.match(/\bconnected\b/i);
+      return !!m;
+    } catch (err) {
+      throw err;
+    }
+  }
+
+  form.addEventListener('submit', async function(e){
+    e.preventDefault();
+    clearStatus();
+    output.textContent = '{}';
+    setStatus('Checking auth...', true);
+    genBtn.disabled = true;
+    try {
+      const authUrl = authUrlInput.value.trim();
+      if (!authUrl) throw new Error('Auth URL is empty');
+
+      let ok = false;
+      try {
+        ok = await checkAuth(authUrl);
+      } catch (fetchErr) {
+        setStatus('⚠ Error fetching auth file: ' + (fetchErr.message || fetchErr), false);
+        genBtn.disabled = false;
+        return;
+      }
+
+      if (!ok) {
+        setStatus('❌ Authentication Failed — auth.txt does not contain "connected".', false);
+        genBtn.disabled = false;
+        return;
+      }
+
+      // auth ok -> generate JSON
+      const id = document.getElementById('pro').value.trim();
+      const thumbnail = document.getElementById('thumbnail').value.trim();
+      const name = document.getElementById('name').value.trim();
+      const description = document.getElementById('description').value.trim();
+      const download = document.getElementById('download').value.trim();
+
+      if (!id || !thumbnail || !description || !download) {
+        setStatus('Please fill required fields (ID, Thumbnail, Description, Download).', false);
+        genBtn.disabled = false;
+        return;
+      }
+
+      const courseData = { id, thumbnail, name, description, download };
+      output.textContent = JSON.stringify(courseData, null, 4);
+      setStatus('✅ Authentication OK — JSON generated.', true);
+    } finally {
+      genBtn.disabled = false;
+    }
+  });
+
+  copyBtn.addEventListener('click', function(){
+    const text = output.textContent || '';
+    navigator.clipboard?.writeText(text).then(()=>{
+      setStatus('JSON copied to clipboard.', true);
+    }).catch(()=>{
+      setStatus('Could not copy automatically. Select and copy manually.', false);
+    });
+  });
+})();
+</script>
+</body>
+</html>
